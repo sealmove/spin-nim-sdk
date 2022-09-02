@@ -1,4 +1,4 @@
-import wit/spin_http, types
+import wit/[spin_http, wasi_outbound_http], types
 import spin/private/utils
 import std/[tables, options]
 from std/httpclient import HttpMethod
@@ -32,10 +32,6 @@ proc toSpin(headers: HttpHeaders): spin_http_headers_t =
     let header = result.ptr.nth(result.len - 1)
     spinHttpStringSet(addr header.f0, newUnmanagedStr(key))
     spinHttpStringSet(addr header.f1, newUnmanagedStr(val))
-
-# proc fromSpin*(headers: spin_http_option_headers_t): Option[HttpHeaders] =
-#   if headers.isSome:
-#     result = some(headers.val.fromSpin)
 
 proc toSpin*(headers: Option[HttpHeaders]): spin_http_option_headers_t =
   if headers.isSome:
@@ -74,3 +70,25 @@ proc fromSpin*(request: spin_http_request_t): Request =
     params: request.params.fromSpin,
     body: request.body.fromSpin
   )
+
+const outboundHttpMethods = {
+  HttpGet: WASI_OUTBOUND_HTTP_METHOD_GET,
+  HttpPost: WASI_OUTBOUND_HTTP_METHOD_POST,
+  HttpPut: WASI_OUTBOUND_HTTP_METHOD_PUT,
+  HttpDelete: WASI_OUTBOUND_HTTP_METHOD_DELETE,
+  HttpPatch: WASI_OUTBOUND_HTTP_METHOD_PATCH,
+  HttpHead: WASI_OUTBOUND_HTTP_METHOD_HEAD,
+  HttpOptions: WASI_OUTBOUND_HTTP_METHOD_OPTIONS
+}.toTable
+
+# TODO
+proc toWasi*(req: Request): ptr wasi_outbound_http_request_t  =
+  discard
+
+# TODO
+proc newWasiResponse*(): ptr wasi_outbound_http_response_t =
+  discard
+
+# TODO
+proc fromSpin*(res: wasi_outbound_http_response_t): Response =
+  discard

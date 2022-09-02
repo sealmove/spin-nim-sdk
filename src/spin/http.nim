@@ -1,6 +1,7 @@
 import private/internals
-import http/private/wit/spin_http
+import http/private/wit/[spin_http, wasi_outbound_http]
 import http/private/[types, utils]
+import std/tables
 
 export types
 
@@ -15,3 +16,20 @@ template httpComponent*(handler: proc (req: Request): Response) =
     res.status = response.status
     res.headers = response.headers.toSpin
     res.body = response.body.toSpin
+
+proc request*(req: Request): (Response, WasiCode) =
+  var
+    spinReq = req.toWasi
+    spinRes = newWasiResponse()
+  defer:
+    wasiOutboundHttpRequestFree(spinReq)
+    wasiOutboundHttpResponseFree(spinRes)
+  let wasiCode = wasiOutboundHttpRequest(spinReq, spinRes)
+  (fromSpin(spinRes[]), wasiCode.WasiCode)
+
+# TODO
+proc get*(uri: string, headers, params = newTable[string, string]()) =
+  discard
+
+proc get*(uriAndParams: string, headers = newTable[string, string]()) =
+  discard

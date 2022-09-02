@@ -14,3 +14,9 @@ type
     status*: uint16
     headers*: Option[HttpHeaders]
     body*: Option[string]
+  WasiCode* = enum
+    Success
+    DestinationNotAllowed
+    InvalidUrl
+    RequestError
+    RuntimeError
