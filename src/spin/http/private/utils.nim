@@ -13,11 +13,10 @@ const httpMethods = {
   SPIN_HTTP_METHOD_OPTIONS: HttpOptions
 }.toTable
 
-proc nth(base: ptr spin_http_tuple2_string_string_t,
-         n: SomeInteger): ptr spin_http_tuple2_string_string_t =
-  let size = sizeof spin_http_tuple2_string_string_t
+proc nth[T](base: ptr T, n: SomeInteger): ptr T =
+  let size = sizeof T
   let header = addr(cast[ptr UncheckedArray[byte]](base)[n.int * size])
-  cast[ptr spin_http_tuple2_string_string_t](header)
+  cast[ptr T](header)
 
 proc fromSpin(headers: spin_http_headers_t): HttpHeaders =
   result = newTable[string, string]()
@@ -82,13 +81,38 @@ const outboundHttpMethods = {
 }.toTable
 
 # TODO
-proc toWasi*(req: Request): ptr wasi_outbound_http_request_t  =
+proc fromWasi(headers: wasi_outbound_http_option_headers_t): Option[HttpHeaders] =
   discard
+
+proc toWasi(headers: HttpHeaders): wasi_outbound_http_headers_t =
+  discard
+  result.ptr = nalloc(headers.len, wasi_outbound_http_tuple2_string_string_t)
+  for key, val in headers:
+    result.len += 1
+    let header = result.ptr.nth(result.len - 1)
+    wasiOutboundHttpStringSet(addr header.f0, newUnmanagedStr(key))
+    wasiOutboundHttpStringSet(addr header.f1, newUnmanagedStr(val))
+
+proc fromWasi(body: wasi_outbound_http_option_body_t): Option[string] =
+  discard
+
+# TODO
+proc toWasi*(req: Request): ptr wasi_outbound_http_request_t  =
+  result = nalloc(1, wasi_outbound_http_request_t)
+  result.method = outboundHttpMethods[req.method].uint8
+  wasiOutboundHttpStringSet(addr result.uri, newUnmanagedStr(req.uri))
+  # result.headers
+  # result.params
+  # result.body
 
 # TODO
 proc newWasiResponse*(): ptr wasi_outbound_http_response_t =
-  discard
+  nalloc(1, wasi_outbound_http_response_t)
 
 # TODO
 proc fromSpin*(res: wasi_outbound_http_response_t): Response =
-  discard
+  Response(
+    status: res.status,
+    headers: res.headers.fromWasi,
+    body: res.body.fromWasi
+  )

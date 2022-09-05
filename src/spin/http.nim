@@ -27,9 +27,9 @@ proc request*(req: Request): (Response, WasiCode) =
   let wasiCode = wasiOutboundHttpRequest(spinReq, spinRes)
   (fromSpin(spinRes[]), wasiCode.WasiCode)
 
-# TODO
-proc get*(uri: string, headers, params = newTable[string, string]()) =
-  discard
+proc get*(uri: string, headers, params = newTable[string, string]()): (Response, WasiCode) =
+  request(Request(`method`: HttpGet, uri: uri, headers: headers, params: params))
 
+# TODO
 proc get*(uriAndParams: string, headers = newTable[string, string]()) =
   discard

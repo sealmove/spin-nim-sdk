@@ -1,5 +1,6 @@
 import std/[options, tables]
 from std/httpclient import HttpMethod
+export HttpMethod
 
 type
   HttpParams* = TableRef[string, string]
