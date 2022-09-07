@@ -1,7 +1,7 @@
 import private/internals
 import http/private/wit/[spin_http, wasi_outbound_http]
 import http/private/[types, utils]
-import std/tables
+import std/[tables, uri]
 
 export types
 
@@ -27,9 +27,8 @@ proc request*(req: Request): (Response, WasiCode) =
   let wasiCode = wasiOutboundHttpRequest(spinReq, spinRes)
   (fromSpin(spinRes[]), wasiCode.WasiCode)
 
-proc get*(uri: string, headers, params = newTable[string, string]()): (Response, WasiCode) =
-  request(Request(`method`: HttpGet, uri: uri, headers: headers, params: params))
+proc get*(uri: Uri, headers = newTable[string, string]()): (Response, WasiCode) =
+  request(Request(`method`: HttpGet, uri: uri, headers: headers))
 
-# TODO
-proc get*(uriAndParams: string, headers = newTable[string, string]()) =
-  discard
+proc get*(uri: string, headers = newTable[string, string]()): (Response, WasiCode) =
+  get(parseUri(uri), headers)

@@ -1,6 +1,6 @@
 import wit/[spin_http, wasi_outbound_http], types
 import spin/private/utils
-import std/[tables, options]
+import std/[tables, options, uri]
 from std/httpclient import HttpMethod
 
 const httpMethods = {
@@ -37,12 +37,6 @@ proc toSpin*(headers: Option[HttpHeaders]): spin_http_option_headers_t =
     result.isSome = true
     result.val = headers.get.toSpin
 
-proc fromSpin(params: spin_http_params_t): HttpParams =
-  result = newTable[string, string]()
-  for i in 0..<params.len:
-    let param = params.ptr.nth(i)
-    result[$param.f0.ptr] = $param.f1.ptr
-
 proc fromSpin(body: spin_http_option_body_t): Option[string] =
   if body.isSome:
     let len = body.val.len
@@ -64,9 +58,8 @@ proc toSpin*(body: Option[string]): spin_http_option_body_t =
 proc fromSpin*(request: spin_http_request_t): Request =
   Request(
     `method`: httpMethods[request.method],
-    uri: $request.uri.ptr,
+    uri: parseUri($request.uri.ptr),
     headers: request.headers.fromSpin,
-    params: request.params.fromSpin,
     body: request.body.fromSpin
   )
 
@@ -100,16 +93,13 @@ proc fromWasi(body: wasi_outbound_http_option_body_t): Option[string] =
 proc toWasi*(req: Request): ptr wasi_outbound_http_request_t  =
   result = nalloc(1, wasi_outbound_http_request_t)
   result.method = outboundHttpMethods[req.method].uint8
-  wasiOutboundHttpStringSet(addr result.uri, newUnmanagedStr(req.uri))
+  wasiOutboundHttpStringSet(addr result.uri, newUnmanagedStr($req.uri))
   # result.headers
-  # result.params
   # result.body
 
-# TODO
 proc newWasiResponse*(): ptr wasi_outbound_http_response_t =
   nalloc(1, wasi_outbound_http_response_t)
 
-# TODO
 proc fromSpin*(res: wasi_outbound_http_response_t): Response =
   Response(
     status: res.status,
