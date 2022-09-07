@@ -1,8 +1,8 @@
-import private/http_types
-import std/options
+import private/types
+import std/[options, tables]
 
-proc `?`*(x: HttpHeaders | HttpParams, key: string): Option[string] =
+proc `?`*(x: HttpHeaders, key: string): Option[string] =
   if x.hasKey(key):
-    some(x["key"])
+    some(x[key])
   else:
     none(string)
