@@ -18,7 +18,7 @@ nim_component
 ```
 
 `configs.nims` configures the compiler and the linker so that it produces the desired wasi component.
-```ini
+```nim
 --os:linux # Emscripten pretends to be linux.
 --cpu:wasm32 # Emscripten is 32bits.
 --cc:clang # Emscripten is very close to clang, so we ill replace it.
